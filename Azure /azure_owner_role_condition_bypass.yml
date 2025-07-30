@@ -1,0 +1,70 @@
+- title: Azure - Custom Role Creation with roleAssignments/write
+  id: 1f28f6d4-14c7-4f2b-b8de-1e07f08495a1
+  status: experimental
+  description: Detect creation of custom roles granting Microsoft.Authorization/roleAssignments/write permission (Privilege Escalation Attempt)
+  references:
+    - https://medium.com/@matanb707/own-the-owner-bypassing-role-conditions-6aaf86409d33
+  author: Dawid Herman
+  date: 2025/07/30
+  logsource:
+    product: azure
+    service: activitylogs
+  detection:
+    selection:
+      operationName: 'Microsoft.Authorization/roleDefinitions/write'
+      properties.roleDefinition.permissions.permissionList|contains:
+        - 'Microsoft.Authorization/roleAssignments/write'
+    condition: selection
+  level: high
+  tags:
+    - attack.privilege_escalation
+    - cloud
+    - azure
+
+- title: Azure - Self-Assignment of Custom Role (Privilege Escalation)
+  id: c78b4f9d-4531-42a8-9122-ccfca2ccbd47
+  status: experimental
+  description: Detect assignment of a custom role granting sensitive permissions (like roleAssignments/write) to the user performing the operation
+  references:
+    - https://medium.com/@matanb707/own-the-owner-bypassing-role-conditions-6aaf86409d33
+  author: Dawid Herman
+  date: 2025/07/30
+  logsource:
+    product: azure
+    service: activitylogs
+  detection:
+    selection:
+      operationName: 'Microsoft.Authorization/roleAssignments/write'
+      identity.claims.http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn: '*'
+      properties.principalName: '*'
+    condition: selection
+  level: high
+  tags:
+    - attack.privilege_escalation
+    - cloud
+    - azure
+
+- title: Azure - Removal of Owner/RBAC Admin Roles
+  id: 86e85d91-6182-4f0c-9eae-27e1802cfac4
+  status: experimental
+  description: Detect removal of Owner or RBAC Administrator role assignments indicating potential escalation
+  references:
+    - https://medium.com/@matanb707/own-the-owner-bypassing-role-conditions-6aaf86409d33
+  author: Dawid Herman
+  date: 2025/07/30
+  logsource:
+    product: azure
+    service: activitylogs
+  detection:
+    selection:
+      operationName: 'Microsoft.Authorization/roleAssignments/delete'
+      properties.roleDefinitionName:
+        - 'Owner'
+        - 'RBAC Administrator'
+        - 'User Access Administrator'
+    condition: selection
+  level: critical
+  tags:
+    - attack.privilege_escalation
+    - cloud
+    - azure
