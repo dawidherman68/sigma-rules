@@ -1,0 +1,38 @@
+title: RDP Security Settings Modified via Registry (Remote or Local)
+id: c3126d2a-8d5e-4b23-91a2-37d1b2f06234
+status: experimental
+description: Detects attempts to enable or weaken RDP by modifying registry values or keys related to RDP security using reg.exe or PowerShell, based on command-line arguments. Matches both local and remote attempts, with a focus on lateral movement TTPs.
+author: Dawid Herman
+date: 2025/08/04
+references:
+  - https://attack.mitre.org/techniques/T1021/001/
+  - https://attack.mitre.org/techniques/T1112/
+  - https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-Analytics-Alert-Reference-by-Alert-name/RDP-connections-enabled-remotely-via-Registry
+logsource:
+  product: windows
+  category: registry_event
+detection:
+  selection:
+    EventType:
+      - 'Registry Value Create'
+      - 'Registry Value Modified'
+      - 'Registry Key Create'
+    dataSource_category: 'security'
+    CommandLine|contains:
+      - 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp'
+  condition: selection
+fields:
+  - EventType
+  - CommandLine
+  - src.process.name
+  - src.process.cmdline
+  - TargetObject
+  - User
+  - ComputerName
+level: high
+tags:
+  - attack.lateral_movement
+  - attack.t1021.001
+  - attack.t1112
+falsepositives:
+  - Legitimate RDP configuration by administrators (verify the context)
